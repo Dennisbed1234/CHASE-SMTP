@@ -1,0 +1,12 @@
+{
+  "name": "zoho-smtp-mailer",
+  "version": "1.0.0",
+  "description": "Reusable Zoho SMTP mailer for Node.js / Next.js apps",
+  "main": "mailer.js",
+  "scripts": {
+    "test": "node example.js"
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.13"
+  }
+}
