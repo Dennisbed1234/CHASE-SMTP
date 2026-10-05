@@ -164,7 +164,7 @@ export async function GET() {
   }
   const cfg = getMailConfig();
   return Response.json({
-    service: 'CHASE-SMTP',
+    service: 'Dispatch SMTP',
     provider: 'Gmail SMTP',
     configured,
     verified,

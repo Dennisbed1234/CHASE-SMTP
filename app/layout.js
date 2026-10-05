@@ -2,7 +2,7 @@ import './globals.css';
 import Nav from './components/Nav';
 
 export const metadata = {
-  title: 'CHASE-SMTP',
+  title: 'Dispatch SMTP',
   description: 'Gmail mail ops — cyber neon console',
 };
 
@@ -13,7 +13,7 @@ export default function RootLayout({ children }) {
         <header className="header">
           <div className="header-inner">
             <a href="/" className="brand">
-              CHASE // SMTP
+              Dispatch SMTP
             </a>
             <Nav />
           </div>

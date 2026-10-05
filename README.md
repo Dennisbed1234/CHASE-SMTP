@@ -1,6 +1,8 @@
-# CHASE-SMTP
+# Dispatch SMTP
 
 Futuristic mail ops console on **Gmail SMTP** (Google App Password).
+
+Repo folder may still be named CHASE-SMTP; the product UI is **Dispatch SMTP**.
 
 ## Provider
 
@@ -15,9 +17,9 @@ Dashboard · Send · Campaigns · Contacts · Customers · Analytics · Inbox ·
 1. Google Account → Security → 2-Step Verification → App passwords
 2. Env (see `.env.example`):
    - `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`, `DATABASE_URL`, `APP_URL`
-3. Run `sql/schema.sql` on Neon
+3. Run the Neon SQL below (or `sql/schema.sql`)
 4. Deploy
 
 ## Design
 
-Cyber-neon dark UI (cyan / lime) — distinct from SMTP-MAILER.
+Cyber-neon dark UI (cyan / lime).

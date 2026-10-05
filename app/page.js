@@ -37,7 +37,7 @@ export default function DashboardPage() {
     <main className="container">
       <h1>Command Center</h1>
       <p className="subtitle">
-        CHASE-SMTP · Gmail delivery · outreach ops
+        Dispatch SMTP · Gmail delivery · outreach ops
         {mail?.configured != null && (
           <>
             {' · '}
