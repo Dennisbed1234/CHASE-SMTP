@@ -41,7 +41,10 @@ export async function POST(request) {
   try {
     if (!isMailConfigured()) {
       return Response.json(
-        { error: 'SMTP not configured. Set ZOHO_EMAIL + ZOHO_APP_PASS.' },
+        {
+          error:
+            'Gmail SMTP not configured. Set SMTP_USER and SMTP_PASS (Google App Password).',
+        },
         { status: 500 }
       );
     }
@@ -49,7 +52,10 @@ export async function POST(request) {
     const recipients = parseRecipients(body.to).slice(0, 500);
     const subjectTpl = String(body.subject || '').trim();
     const htmlTpl = body.html ? String(body.html) : undefined;
-    const textTpl = body.text || body.message ? String(body.text || body.message) : undefined;
+    const textTpl =
+      body.text || body.message
+        ? String(body.text || body.message)
+        : undefined;
     const dryRun = Boolean(body.dryRun);
 
     if (!recipients.length || !subjectTpl || (!htmlTpl && !textTpl)) {
@@ -100,7 +106,11 @@ export async function POST(request) {
             messageId: result.messageId,
           });
         }
-        results.push({ recipient: r.email, success: true, messageId: result.messageId });
+        results.push({
+          recipient: r.email,
+          success: true,
+          messageId: result.messageId,
+        });
       } else {
         if (hasDatabase()) {
           await logEmail({
@@ -114,21 +124,35 @@ export async function POST(request) {
             error: result.error,
           });
         }
-        results.push({ recipient: r.email, success: false, error: result.error });
+        results.push({
+          recipient: r.email,
+          success: false,
+          error: result.error,
+        });
       }
       if (i < recipients.length - 1) await delay(sendDelayMs());
     }
 
     const sent = results.filter((r) => r.success).length;
     const failed = results.filter((r) => !r.success).length;
-    return Response.json({ success: sent > 0, total: results.length, sent, failed, results });
+    return Response.json({
+      success: sent > 0,
+      total: results.length,
+      sent,
+      failed,
+      results,
+    });
   } catch (e) {
     return Response.json({ error: e.message }, { status: 500 });
   }
 }
 
 export async function GET() {
-  const { verifyConnection, isMailConfigured, getMailConfig } = require('../../../lib/mailer');
+  const {
+    verifyConnection,
+    isMailConfigured,
+    getMailConfig,
+  } = require('../../../lib/mailer');
   const { hasDatabase } = require('../../../lib/db');
   const configured = isMailConfigured();
   let verified = false;
@@ -141,9 +165,11 @@ export async function GET() {
   const cfg = getMailConfig();
   return Response.json({
     service: 'CHASE-SMTP',
+    provider: 'Gmail SMTP',
     configured,
     verified,
     error,
+    host: cfg.host,
     from: cfg.fromEmail,
     database: hasDatabase(),
   });
