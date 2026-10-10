@@ -10,6 +10,7 @@ export async function GET(request) {
   const sp = new URL(request.url).searchParams;
   const emails = await listEmails({
     q: sp.get('q') || undefined,
+    status: sp.get('status') || undefined,
     limit: Number(sp.get('limit') || 500),
   });
   const stats = await getStats();
