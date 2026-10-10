@@ -1,4 +1,4 @@
-const { query, hasDatabase } = require('../../../lib/db');
+const { query, hasDatabase, ensureEmailTrackingColumns } = require('../../../lib/db');
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +19,8 @@ export async function GET(request) {
   }
 
   try {
+    await ensureEmailTrackingColumns();
+
     const url = new URL(request.url);
     const days = Math.min(Math.max(Number(url.searchParams.get('days') || 7), 1), 90);
 
@@ -27,10 +29,12 @@ export async function GET(request) {
       sent: 0,
       failed: 0,
       opened: 0,
+      clicked: 0,
       today: 0,
       last7: 0,
       uniqueContacts: 0,
       openRate: 0,
+      clickRate: 0,
       failRate: 0,
     };
 
@@ -45,6 +49,9 @@ export async function GET(request) {
           COALESCE(SUM(CASE
             WHEN lower(trim(COALESCE(status,''))) = 'opened' OR opened_at IS NOT NULL
             THEN 1 ELSE 0 END), 0)::int AS opened,
+          COALESCE(SUM(CASE
+            WHEN lower(COALESCE(last_event,'')) = 'clicked' OR COALESCE(click_count, 0) > 0
+            THEN 1 ELSE 0 END), 0)::int AS clicked,
           COALESCE(SUM(CASE
             WHEN created_at >= NOW() - INTERVAL '24 hours'
               AND (status IS NULL OR lower(trim(status)) IN ('sent','delivered','opened','pending'))
@@ -61,15 +68,21 @@ export async function GET(request) {
         sent: n(r.sent),
         failed: n(r.failed),
         opened: n(r.opened),
+        clicked: n(r.clicked),
         today: n(r.today),
         last7: n(r.last7),
         uniqueContacts: 0,
         openRate: 0,
+        clickRate: 0,
         failRate: 0,
       };
       totals.openRate =
         totals.sent > 0
           ? Math.round((totals.opened / totals.sent) * 1000) / 10
+          : 0;
+      totals.clickRate =
+        totals.opened > 0
+          ? Math.round((totals.clicked / totals.opened) * 1000) / 10
           : 0;
       totals.failRate =
         totals.total > 0
@@ -98,7 +111,7 @@ export async function GET(request) {
       d.setHours(0, 0, 0, 0);
       d.setDate(d.getDate() - i);
       const key = d.toISOString().slice(0, 10);
-      byDayMap.set(key, { date: key, sent: 0, opened: 0, failed: 0 });
+      byDayMap.set(key, { date: key, sent: 0, opened: 0, clicked: 0, failed: 0 });
     }
 
     try {
@@ -112,6 +125,9 @@ export async function GET(request) {
           COALESCE(SUM(CASE
             WHEN lower(trim(COALESCE(status,''))) = 'opened' OR opened_at IS NOT NULL
             THEN 1 ELSE 0 END), 0)::int AS opened,
+          COALESCE(SUM(CASE
+            WHEN lower(COALESCE(last_event,'')) = 'clicked' OR COALESCE(click_count, 0) > 0
+            THEN 1 ELSE 0 END), 0)::int AS clicked,
           COALESCE(SUM(CASE WHEN lower(trim(COALESCE(status,''))) = 'failed' THEN 1 ELSE 0 END), 0)::int AS failed
         FROM emails
         WHERE created_at >= NOW() - ($1 || ' days')::interval
@@ -127,6 +143,7 @@ export async function GET(request) {
             date: key,
             sent: n(r.sent),
             opened: n(r.opened),
+            clicked: n(r.clicked),
             failed: n(r.failed),
           });
         }

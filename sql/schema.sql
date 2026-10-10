@@ -16,7 +16,10 @@ CREATE TABLE IF NOT EXISTS emails (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   delivered_at TIMESTAMPTZ,
   opened_at TIMESTAMPTZ,
-  open_count INT NOT NULL DEFAULT 0
+  open_count INT NOT NULL DEFAULT 0,
+  clicked_at TIMESTAMPTZ,
+  click_count INT NOT NULL DEFAULT 0,
+  last_event TEXT
 );
 
 ALTER TABLE emails ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending';
@@ -26,6 +29,9 @@ ALTER TABLE emails ADD COLUMN IF NOT EXISTS campaign_id TEXT;
 ALTER TABLE emails ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMPTZ;
 ALTER TABLE emails ADD COLUMN IF NOT EXISTS opened_at TIMESTAMPTZ;
 ALTER TABLE emails ADD COLUMN IF NOT EXISTS open_count INT DEFAULT 0;
+ALTER TABLE emails ADD COLUMN IF NOT EXISTS clicked_at TIMESTAMPTZ;
+ALTER TABLE emails ADD COLUMN IF NOT EXISTS click_count INT DEFAULT 0;
+ALTER TABLE emails ADD COLUMN IF NOT EXISTS last_event TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_emails_created ON emails (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_emails_recipient ON emails (recipient);

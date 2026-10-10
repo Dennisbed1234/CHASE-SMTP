@@ -50,7 +50,7 @@ export default function AnalyticsPage() {
     <main className="container">
       <h1>Analytics</h1>
       <p className="subtitle">
-        Live stats from Sent inbox · opens, delivery, volume
+        Live stats from Sent inbox · opens, clicks, delivery, volume
       </p>
 
       <div className="toolbar">
@@ -84,12 +84,20 @@ export default function AnalyticsPage() {
               <div className="stat-label">Opened</div>
             </div>
             <div className="stat-card">
+              <div className="stat-value">{t.clicked ?? 0}</div>
+              <div className="stat-label">Clicked</div>
+            </div>
+            <div className="stat-card">
               <div className="stat-value">{t.failed ?? 0}</div>
               <div className="stat-label">Failed</div>
             </div>
             <div className="stat-card">
               <div className="stat-value">{t.openRate ?? 0}%</div>
               <div className="stat-label">Open rate</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-value">{t.clickRate ?? 0}%</div>
+              <div className="stat-label">Click rate</div>
             </div>
             <div className="stat-card">
               <div className="stat-value">{t.uniqueContacts ?? 0}</div>
@@ -126,7 +134,8 @@ export default function AnalyticsPage() {
                   >
                     <span style={{ fontWeight: 600 }}>{d.date}</span>
                     <span className="muted">
-                      {d.sent} sent · {d.opened} opened · {d.failed} failed
+                      {d.sent} sent · {d.opened} opened · {d.clicked ?? 0}{' '}
+                      clicked · {d.failed} failed
                     </span>
                   </div>
                   <div
