@@ -37,6 +37,42 @@ function parseRecipients(to) {
   return out;
 }
 
+function appBase() {
+  const raw = (process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || '').trim();
+  return raw.replace(/\/$/, '');
+}
+
+/** Append open pixel + rewrite http(s) links through /api/track/click */
+function injectTracking(html, emailId) {
+  if (!html || !emailId) return html;
+  const base = appBase();
+  if (!base) return html;
+
+  let out = String(html);
+
+  // Rewrite links (skip mailto, already-tracked, and the pixel itself)
+  out = out.replace(
+    /href\s*=\s*["'](https?:\/\/[^"']+)["']/gi,
+    (match, url) => {
+      if (/\/api\/track\//i.test(url)) return match;
+      const tracked = `${base}/api/track/click?id=${encodeURIComponent(
+        emailId
+      )}&u=${encodeURIComponent(url)}`;
+      return `href="${tracked}"`;
+    }
+  );
+
+  const pixel = `<img src="${base}/api/track/open?id=${encodeURIComponent(
+    emailId
+  )}" width="1" height="1" alt="" style="display:none;width:1px;height:1px;border:0;" />`;
+  if (/<\/body>/i.test(out)) {
+    out = out.replace(/<\/body>/i, `${pixel}</body>`);
+  } else {
+    out = `${out}${pixel}`;
+  }
+  return out;
+}
+
 export async function POST(request) {
   try {
     if (!isMailConfigured()) {
@@ -83,9 +119,11 @@ export async function POST(request) {
       const r = recipients[i];
       const vars = { name: r.name, email: r.email };
       const subject = personalize(subjectTpl, vars);
-      const html = htmlTpl ? personalize(htmlTpl, vars) : undefined;
+      let html = htmlTpl ? personalize(htmlTpl, vars) : undefined;
       const text = textTpl ? personalize(textTpl, vars) : undefined;
       const emailId = crypto.randomUUID();
+      if (html) html = injectTracking(html, emailId);
+
       const result = await sendEmail({
         to: r.email,
         subject,
@@ -141,6 +179,7 @@ export async function POST(request) {
       sent,
       failed,
       results,
+      tracking: Boolean(appBase()),
     });
   } catch (e) {
     return Response.json({ error: e.message }, { status: 500 });
@@ -172,5 +211,6 @@ export async function GET() {
     host: cfg.host,
     from: cfg.fromEmail,
     database: hasDatabase(),
+    appUrl: appBase() || null,
   });
 }
